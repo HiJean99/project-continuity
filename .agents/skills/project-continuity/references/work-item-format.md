@@ -26,6 +26,8 @@ assigned_to: unassigned
 next_agent: unassigned
 depends_on: []
 source_session: ""
+schema_version: "1.1"
+revision: 1
 ---
 ~~~
 
@@ -36,6 +38,8 @@ Metadata rules:
 - created_by, assigned_to, and next_agent are free-form labels. They may be a person, agent name, role, or team.
 - depends_on contains Work Item IDs. It is informational; this Skill is not a scheduler.
 - source_session is optional. Never put credentials or private URLs in metadata.
+- schema_version identifies the Work Item format; new items use 1.1.
+- revision starts at 1 and increments on each material update. It is an advisory stale-edit check, not a distributed lock.
 
 ## Required sections
 
@@ -72,9 +76,13 @@ When relevant, record:
 
 This is a snapshot, not an authority over the current filesystem.
 
-### Next actions
+### Next action
 
-Write ordered, concrete actions. Prefer verbs and name the relevant files, commands, or outputs. A next agent should be able to start at item 1 without reconstructing the conversation.
+State exactly one immediate action that the next owner can execute now. Include the target file, command, question, or expected output where possible. Do not give the receiving agent a menu of alternatives.
+
+### Remaining steps (optional)
+
+A short ordered checklist may describe later work, but it must not compete with the single immediate Next action.
 
 ### Acceptance criteria
 
@@ -97,6 +105,15 @@ Append a compact entry whenever the work changes hands or is paused for another 
 ### Validation log
 
 Append material checks with date, command or method, and result. Avoid noisy logs.
+
+## Fidelity and provenance rules
+
+- Preserve accepted decisions as verdicts: what was decided, why, and what would justify reopening it.
+- Mark inherited or unverified claims explicitly; repetition does not make them verified.
+- Keep the exact current work product in its source file. Link to it. Include verbatim excerpts only when the next owner cannot access the source location.
+- Separate completed work from proposed work. Never turn an intention into a completion claim.
+- Record the source of important findings: path and line/section, commit, experiment ID, citation, URL, or conversation/session reference.
+- Do not save hidden chain-of-thought or full chat transcripts.
 
 ## Status lifecycle
 
@@ -130,4 +147,8 @@ Before setting a task to ready, verify:
 - Next actions are executable.
 - Acceptance criteria are testable.
 - Required approvals and permissions are not assumed.
+- Exactly one immediate Next action is stated.
+- Exact work-in-progress is linked or preserved verbatim when needed.
+- Settled decisions and unverified assumptions remain clearly distinguished.
+- Related project memory and indexes will not be left stale.
 - No hidden reasoning, secrets, or irrelevant transcript dump is included.

@@ -28,7 +28,8 @@
 5. Set next_agent or assigned_to only when the intended owner is known. Never assume the next agent based solely on vendor.
 6. Update STATE.md with a link to the Work Item only if the current agent is authorized to update project memory. A handoff-only analysis agent writes only the Work Item; the receiving agent updates STATE.md when it adopts the work.
 7. If the current agent is in a read-only/plan mode, do not claim persistence: request approval for the single Work Item write or return the complete Markdown artifact for the user to save. Do not broaden permission to source code or other project files.
-8. Tell the user the Work Item ID and where it was saved. Do not claim that another agent was launched.
+8. Run the handoff quality checklist in references/work-item-format.md, including the single immediate next action and provenance check.
+9. Tell the user the Work Item ID and where it was saved. Do not claim that another agent was launched.
 
 ## resume — continue unfinished work
 
@@ -36,10 +37,11 @@
 2. Read the selected Work Item and relevant project memory.
 3. Verify the actual workspace and dependencies. Compare actual state with the saved snapshot.
 4. If the snapshot is stale, reconcile it explicitly; do not overwrite current files to force them to match the old note.
-5. Continue the first incomplete next action.
+5. Continue the single immediate Next action. If it is missing or ambiguous, repair the Work Item before execution.
+6. Preserve exact work-in-progress at its source location; do not regenerate or paraphrase an existing draft/code artifact unnecessarily.
 6. Record material progress, validation, blockers, and any ownership change in the same Work Item.
-7. Update STATE.md when the project-level snapshot changes.
-8. Set review or done only according to the status lifecycle and acceptance criteria.
+8. Update STATE.md when the project-level snapshot changes, and reconcile linked questions/indexes so they do not contradict the Work Item.
+9. Set review or done only according to the status lifecycle and acceptance criteria.
 
 ## update — consolidate durable knowledge
 
@@ -49,6 +51,7 @@
 4. Add or resolve OPEN_QUESTIONS.md entries only when the evidence supports the change.
 5. Link detailed records rather than copying large logs or reports.
 6. Leave uncertain findings labelled as hypotheses or inferences.
+7. Perform a backward consistency sweep: ensure linked STATE.md entries, OPEN_QUESTIONS.md items, and decision indexes do not contradict newer verified outcomes. Update only the authoritative home of each fact and link elsewhere.
 
 ## status — show continuity state
 

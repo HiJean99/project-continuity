@@ -53,11 +53,11 @@ Do not force every file into every project if an existing equivalent is already 
 
 A Work Item is the durable record of one meaningful unit of work. It is both the task record and the handoff package; do not create a second transcript-summary file for the same work.
 
-For handoff or resume, read [references/operations.md](references/operations.md) and [references/work-item-format.md](references/work-item-format.md).
+For handoff or resume, read [references/operations.md](references/operations.md) and [references/work-item-format.md](references/work-item-format.md). New Work Items use schema version 1.1 and must pass scripts/validate_work_item.py from the repository root, or the validator bundled in the installed Skill directory.
 
 Store Work Items in work/items/. Use one file per independently actionable outcome. Reuse and update an existing matching open item rather than creating duplicates.
 
-A handoff must make the next action executable without requiring the next agent to reconstruct the conversation. Include:
+A handoff must make the next action executable without requiring the next agent to reconstruct the conversation. Preserve the user's actual work product at its authoritative location; when an exact draft, code fragment, formula, query, or configuration is needed to continue, link to it or include the exact relevant excerpt rather than paraphrasing it. Do not duplicate large artifacts into the Work Item. Every handoff must end with exactly one immediate Next action; later steps may remain as a short checklist. Include:
 
 - objective and why it matters;
 - relevant context and already established conclusions;
@@ -79,10 +79,10 @@ When resuming a Work Item:
 
 1. Read PROJECT.md and STATE.md, then the selected Work Item. Read only the additional decisions, questions, and project files relevant to the task.
 2. Inspect the actual workspace: current directory, Git branch and HEAD, dirty files, relevant artifacts, and recent validation results.
-3. Compare reality with the Work Item's recorded snapshot. Actual files and command results outrank stale notes. If there is a material conflict, preserve the current state and resolve it before editing.
+3. Compare reality with the Work Item's recorded snapshot. Actual files and command results outrank stale notes. If there is a material conflict, preserve the current state and resolve it before editing. If another agent may have updated the same Work Item, re-read it immediately before writing; never overwrite newer content with a stale copy.
 4. Check dependencies. Do not proceed while a required dependency is unfinished unless the user explicitly changes the plan.
 5. Continue from the first incomplete next action. Do not repeat completed work without a reason.
-6. Update the Work Item after meaningful progress, handoff, blocking, or validation. Update STATE.md when the project-level snapshot changes.
+6. Update the Work Item after meaningful progress, handoff, blocking, or validation. Before writing, re-read the current file and preserve changes made since it was loaded. Keep one active writer per Work Item; hand off ownership instead of concurrent editing. Update STATE.md when the project-level snapshot changes.
 7. Move to review when implementation is complete but acceptance is pending. Mark done only after the stated acceptance criteria are verified or explicitly accepted by the user.
 
 ## Updating memory
@@ -91,6 +91,7 @@ When resuming a Work Item:
 - Refresh STATE.md as a short current snapshot; do not turn it into a chronological diary.
 - Append to DECISIONS.md; do not rewrite historical decisions. Record accepted decisions separately from proposals.
 - Keep OPEN_QUESTIONS.md for genuine unresolved questions, not routine execution checklists. Link an actionable question to a Work Item when work is required.
+- When creating or closing a Work Item, reconcile related project memory and task indexes: update or resolve linked open questions, refresh STATE.md if status changed, and ensure no summary claims a task is open after it is done (or vice versa). Do not copy the same fact into multiple authoritative locations.
 - An analysis-only agent does not update canonical project memory. If asked to update it, return a proposed change in chat or create a Work Item for the change; do not edit the memory files. It may create or update one Work Item only when explicitly handing work off and after approval for that file write.
 - Record experiment runs, code changes, deployment facts, or other domain-specific details in the project's existing authoritative locations. Link to them rather than duplicating them.
 

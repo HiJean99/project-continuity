@@ -15,6 +15,8 @@ Project Continuity does not synchronize hidden model reasoning or manage agent p
 - **Flexible ownership:** no fixed researcher/developer roles. The person or agent responsible for each task is recorded in that task.
 - **Portable storage:** Markdown and Git; no database, daemon, MCP server, or model-vendor lock-in.
 - **Evidence discipline:** preserve conclusions, sources, assumptions, decisions, and results—not hidden chain-of-thought.
+- **Handoff fidelity:** preserve exact in-progress artifacts at their source, require provenance, and give the next agent one immediate action.
+- **Consistency checks:** reconcile project status and linked questions when work is created or closed.
 
 ## Operations
 
@@ -122,6 +124,10 @@ A Work Item under work/items/ is the durable record of one actionable outcome. I
 - ordered next actions;
 - acceptance criteria;
 - constraints, risks, and handoff/validation history.
+
+New Work Items use schema version 1.1 and an advisory revision number. The revision helps agents notice stale edits but is not a distributed lock. Keep one active writer per Work Item and hand off ownership rather than editing the same file concurrently.
+
+The repository includes a standard-library Work Item validator at scripts/validate_work_item.py. Run it against an item before handing it off or marking it complete.
 
 The status lifecycle is:
 

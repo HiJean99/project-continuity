@@ -17,6 +17,8 @@ Project Continuity 是一套轻量的项目记忆与任务交接协议。它让�
 - **角色灵活：** 不预设某个 Agent 负责研究、另一个负责编码。任务由谁承担、下一步交给谁，都在 Work Item 中按实际情况记录。
 - **跨工具可移植：** 基于 Markdown、Git 和 Agent Skills，不依赖数据库、守护进程、MCP Server 或特定模型厂商。
 - **证据优先：** 保存可见结论、来源、假设、决策和结果，不保存模型隐藏推理。
+- **高保真交接：** 保留原始工作成果和明确来源，给接手 Agent 一个唯一、可执行的下一步。
+- **一致性检查：** 任务创建或关闭时，检查项目状态和关联问题是否过时。
 
 ## 六种操作
 
@@ -164,6 +166,14 @@ Work Item 应包含：
 6. 可直接执行的下一步。
 7. 可验证的验收标准。
 8. 约束、风险、假设和交接记录。
+
+新版 Work Item 使用 schema version 1.1，并包含一个提示性 revision 版本号，用于发现可能的旧内容覆盖。它不是分布式锁；同一份 Work Item 应保持单一写入者，需要换 Agent 时先交接所有权，不要并发编辑。
+
+仓库提供不依赖第三方库的 Work Item 校验器：scripts/validate_work_item.py。交接或标记完成前，可以运行：
+
+~~~bash
+python3 scripts/validate_work_item.py work/items/W-YYYYMMDD-short-title.md
+~~~
 
 Work Item 的状态：
 

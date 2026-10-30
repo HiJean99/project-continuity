@@ -10,6 +10,8 @@ assigned_to: unassigned
 next_agent: unassigned
 depends_on: []
 source_session: ""
+schema_version: "1.1"
+revision: 1
 ---
 
 # <Work Item title>
@@ -50,10 +52,14 @@ Why this work exists and the minimum background needed to continue.
 - Relevant artifacts:
 - Last validation:
 
-## Next actions
+## Next action
 
-1. [ ] First executable action.
-2. [ ] Following action.
+One immediate, executable action for the next owner.
+
+## Remaining steps (optional)
+
+1. [ ] Later step, if useful.
+2. [ ] Later step, if useful.
 
 ## Acceptance criteria
 
@@ -72,3 +78,10 @@ Why this work exists and the minimum background needed to continue.
 ## Validation log
 
 - YYYY-MM-DD — <command or method>: <result>.
+
+## Fidelity and provenance
+
+- Accepted decisions:
+- Unverified assumptions:
+- Exact work-in-progress location or excerpt:
+- Evidence provenance:

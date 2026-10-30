@@ -24,6 +24,8 @@ done
 
 bash -n "$ROOT/scripts/install-global.sh"
 bash -n "$ROOT/scripts/validate.sh"
+python3 -m unittest discover -s "$ROOT/tests" -v
+python3 -m py_compile "$ROOT/.agents/skills/project-continuity/scripts/validate_work_item.py"
 
 echo "Project Continuity Skill structure: OK"
 echo "Shell scripts syntax: OK"

@@ -59,3 +59,32 @@ Antigravity CLI reads workspace AGENTS.md and GEMINI.md; Codex reads AGENTS.md. 
 - Codex Skills: https://learn.chatgpt.com/docs/build-skills
 - Antigravity CLI Skills: https://antigravity.google/docs/skills
 - Antigravity CLI rules: https://antigravity.google/docs/rules
+
+
+## Review of related projects and resulting changes
+
+Reviewed the public designs of:
+
+- seriousz158/project-continuity: a single current-state authority, revision compare-and-swap, writer leases, immutable receipts, evidence-backed completion, and conservative Git-drift checks.
+- jumpifequal/handoff-skill: preserve settled decisions, exact work-in-progress, explicit provenance, and one immediate next action; avoid lossy prose summaries.
+- uchimata2/handoff-skill: reconcile linked durable records when a handoff is created or closed so status indexes and memory do not become stale.
+- stefan-jansen/coding-agent-toolkit: keep workflow state on disk and avoid wrapping one agent runtime inside another merely to transfer context.
+
+Adopted for this personal, Markdown-first project:
+
+1. One Work Item remains the canonical record for each unfinished outcome; no second handoff document.
+2. Add schema_version and advisory revision metadata. Revision helps detect stale edits but is not a lock or compare-and-swap guarantee.
+3. Require one immediate next action, while allowing a separate short list of later steps.
+4. Preserve exact in-progress artifacts at their source location and link to them; include verbatim excerpts only when necessary.
+5. Require explicit provenance and labels for verified facts, observations, hypotheses, inferences, and accepted decisions.
+6. Reconcile STATE.md and linked open-question/index entries when tasks change or close.
+7. Re-read a Work Item immediately before editing and keep one active writer per item. Hand off ownership instead of concurrent writes.
+
+Deliberately not adopted:
+
+- A JSON block embedded in Markdown as a second authoritative representation.
+- A daemon, SQLite database, writer lease service, content-addressed receipt store, or export bundle.
+- Full Git fingerprinting on every update.
+- Automatic hooks or agent launching.
+
+Those mechanisms solve multi-process and multi-agent concurrency at the cost of substantially more implementation and maintenance. For personal use, sequential ownership plus Git history and explicit revision checks are the simpler trade-off. If real concurrent edits become common, revisit a transactional state store rather than pretending a Markdown revision field is a lock.
