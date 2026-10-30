@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+SKILL="$ROOT/.agents/skills/project-continuity"
+
+grep -q '^name: project-continuity$' "$SKILL/SKILL.md"
+grep -q '^description: ' "$SKILL/SKILL.md"
+
+for file in \
+  "$SKILL/references/memory-model.md" \
+  "$SKILL/references/work-item-format.md" \
+  "$SKILL/references/operations.md" \
+  "$SKILL/references/AGENTS-section.md" \
+  "$SKILL/templates/PROJECT.md" \
+  "$SKILL/templates/STATE.md" \
+  "$SKILL/templates/DECISIONS.md" \
+  "$SKILL/templates/OPEN_QUESTIONS.md" \
+  "$SKILL/templates/WORK_ITEM.md" \
+  "$SKILL/templates/work-README.md"
+do
+  test -s "$file"
+done
+
+bash -n "$ROOT/scripts/install-global.sh"
+bash -n "$ROOT/scripts/validate.sh"
+
+echo "Project Continuity Skill structure: OK"
+echo "Shell scripts syntax: OK"
