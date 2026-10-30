@@ -1,5 +1,7 @@
 # Project Continuity
 
+**Languages:** English | [简体中文](README.zh-CN.md)
+
 A lightweight, agent-neutral protocol for preserving project context and continuing unfinished work across agents, sessions, and machines.
 
 Project Continuity does not synchronize hidden model reasoning or manage agent processes. It records the information another person or agent needs to continue the work: goals, decisions, evidence, completed steps, current state, next actions, and acceptance criteria.
