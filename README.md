@@ -1,36 +1,61 @@
 # Project Continuity
 
-**Languages:** English | [简体中文](README.zh-CN.md)
+**Version:** 1.3.0 | **Languages:** English | [简体中文](README.zh-CN.md)
 
-A lightweight, agent-neutral protocol for preserving project context and continuing unfinished work across agents, sessions, and machines. Version 1.2 adds an optional Orca Orchestration adapter without making Orca a core dependency.
+Project Continuity is an **optional, lightweight, agent-neutral protocol** for preserving durable project context across sessions, agents, people, tools, and machines.
 
-Project Continuity does not synchronize hidden model reasoning or manage agent processes. It records the information another person or agent needs to continue the work: goals, decisions, evidence, completed steps, current state, next actions, and acceptance criteria.
+It is not a project manager, issue tracker, task scheduler, agent runtime, or orchestration platform. It should not be installed into every repository by default. Its job is to preserve only the context that existing project documentation and tools do not already preserve.
 
-## What it provides
+## The v1.3 principle
 
-- **Project memory:** PROJECT.md, STATE.md, DECISIONS.md, and OPEN_QUESTIONS.md.
-- **Durable work records:** one Markdown Work Item for each meaningful piece of work that must survive a session or agent change.
-- **Handoff as a task:** the same Work Item is both the task record and the handoff package; no duplicate handoff summary is required.
-- **Verified resumption:** the receiving agent checks the actual files, Git state, dependencies, and validation evidence before continuing.
-- **Flexible ownership:** no fixed researcher/developer roles. The person or agent responsible for each task is recorded in that task.
-- **Portable storage:** Markdown and Git; no database, daemon, MCP server, or model-vendor lock-in.
-- **Evidence discipline:** preserve conclusions, sources, assumptions, decisions, and results—not hidden chain-of-thought.
-- **Handoff fidelity:** preserve exact in-progress artifacts at their source, require provenance, and give the next agent one immediate action.
-- **Consistency checks:** reconcile project status and linked questions when work is created or closed.
-- **Optional orchestration:** connect durable Work Items to Orca Runs, Tasks, Dispatches, and Workers through separate Execution Records; the core remains usable without Orca.
+**Do not build a second system for work that Git, project documentation, an issue tracker, or an orchestrator already manages.**
+
+For an ordinary software repository, `README.md`, `AGENTS.md`, architecture docs, ADRs, tests, Git, and an orchestrator such as Orca are usually enough. Use those directly. Project Continuity becomes useful when important context must outlive an individual session, agent, issue, or orchestration Run and has no suitable existing home.
+
+## When to use it
+
+Use Project Continuity when:
+
+- a long-running research or engineering effort spans many sessions, agents, or tools;
+- important decisions and evidence must survive provider/runtime changes;
+- work crosses multiple repositories or systems without a shared source of truth;
+- a receiving agent/person needs a durable handoff that existing project records cannot provide.
+
+Usually do **not** use it when:
+
+- a coding task is self-contained in one session;
+- the repository already has useful README, AGENTS.md, architecture docs, and ADRs;
+- active work is already tracked in GitHub Issues, Jira, Linear, or another issue tracker;
+- Orca already manages the active Run, Tasks, dependencies, Worker messages, and Worktrees;
+- existing research/experiment records already preserve the relevant context.
+
+See `.agents/skills/project-continuity/references/when-to-use.md` for the decision guide and `docs/migration-v1.2-to-v1.3.md` for the upgrade notes.
+
+## System boundaries
+
+| System | Owns |
+|---|---|
+| Project documentation | Purpose, setup, architecture, conventions, domain knowledge |
+| ADR / decision log | Accepted technical and research decisions |
+| Issue tracker | Backlog, tickets, owners, workflow status |
+| Orca or another orchestrator | Live Runs, Tasks, dependencies, Dispatches, Workers, messages, Worktrees, execution state |
+| Git | Source history, branches, commits, merges |
+| Project Continuity | Durable cross-context knowledge not already represented elsewhere |
+
+Project Continuity does not configure Orca, choose Agents/models, create Workers, schedule DAGs, manage Worktrees, merge branches, or monitor execution. Do not mirror Orca Tasks as Work Items or create per-Run Execution Records in v1.3.
 
 ## Operations
 
-The project-continuity Skill supports six operations:
+The Skill supports six operations, but only when there is a real continuity need:
 
 | Operation | Purpose |
 |---|---|
-| init | Initialize continuity files in a new project. |
-| adapt | Inspect an existing project and add the smallest useful continuity layer without duplicating authoritative docs. |
-| handoff | Turn unfinished work or a discussion into an actionable Work Item for another agent or a later session. |
-| resume | Verify the current workspace and continue an existing Work Item. |
-| update | Consolidate meaningful progress into durable project memory. |
-| status | Summarize current project state and open Work Items. |
+| init | Establish the smallest useful continuity layer after inspecting existing sources. |
+| adapt | Fill a genuine continuity gap; a no-op is a valid result. |
+| handoff | Preserve unfinished work across a context boundary when existing systems are insufficient. |
+| resume | Verify the workspace and continue a durable handoff. |
+| update | Consolidate durable knowledge or decisions in their authoritative location. |
+| status | Summarize continuity records, not live orchestrator or issue status. |
 
 Use natural language or invoke the Skill directly:
 
@@ -45,127 +70,75 @@ Codex: $project-continuity resume W-YYYYMMDD-short-title
 Antigravity CLI: /project-continuity resume W-YYYYMMDD-short-title
 ~~~
 
-Only create a Work Item when work genuinely needs to continue across sessions, agents, or people. Routine one-off questions do not need task records.
+The Skill must inspect existing docs and tools first. If they already cover the need, it should report that Project Continuity is unnecessary and make no changes.
+
+## Records are optional
+
+The four common project-memory files are not a mandatory bundle:
+
+| File | Create only when |
+|---|---|
+| `PROJECT.md` | Stable project context is not already documented |
+| `STATE.md` | A cross-session snapshot is useful and no existing roadmap/status source serves that role |
+| `DECISIONS.md` | No ADR or existing decision log exists |
+| `OPEN_QUESTIONS.md` | Questions need a durable home and are not already issues/research questions |
+
+A Work Item is an optional **handoff artifact**, not a general backlog item, scheduler, or replacement for an Orca Task or issue. Create one only when the outcome must survive a meaningful context boundary and the receiving context cannot rely on existing records. Work Items retain schema version 1.1 for compatibility.
 
 ## Installation
 
 ### Codex CLI and Antigravity CLI
 
-Clone the repository and run the installer:
-
 ~~~bash
 git clone https://github.com/HiJean99/project-continuity.git
 cd project-continuity
-
 ./scripts/validate.sh
 ./scripts/install-global.sh
 ~~~
 
-The installer places the Skill in the user-level directories used by these two CLIs:
+The installer copies the Skill to:
 
-- Codex CLI: $CODEX_HOME/skills/project-continuity/ (default: ~/.codex/skills/project-continuity/).
-- Antigravity CLI: ~/.gemini/antigravity-cli/skills/project-continuity/.
+- Codex CLI: `$CODEX_HOME/skills/project-continuity/` (default `~/.codex/skills/project-continuity/`).
+- Antigravity CLI: `~/.gemini/antigravity-cli/skills/project-continuity/`.
 
-Restart the CLI after installation if the Skill is not discovered.
-
-To check whether both installed copies match the repository version:
+Check installed copies:
 
 ~~~bash
 ./scripts/install-global.sh check
 ~~~
 
-The installer does not overwrite an existing directory unless it was previously installed by this project.
+The installer does not overwrite an unmanaged directory. Restart the CLI if it does not discover the updated Skill.
 
 ### Other Agent runtimes
 
-The Skill source is in the standard project-local location:
+The portable Skill source is `.agents/skills/project-continuity/`. Install or link it to the runtime's documented Skill directory.
 
-~~~text
-.agents/skills/project-continuity/
-~~~
+## Backward compatibility
 
-Any runtime that supports the Agent Skills format can use the same Skill. Install or link this directory into the runtime's documented user-level Skills directory. The included installer currently targets Codex CLI and Antigravity CLI; it does not assume paths for other runtimes.
+- Existing v1.1 Work Items remain valid.
+- v1.2 Orca Execution Records and their validator are retained as **legacy artifacts** for existing projects. v1.3 does not create new Execution Records or treat Orca as a Project Continuity backend.
+- Existing project files are not automatically migrated, deleted, or renamed.
 
-## Project files
-
-A new project can start with this structure:
-
-~~~text
-project/
-├── AGENTS.md
-├── PROJECT.md
-├── STATE.md
-├── DECISIONS.md
-├── OPEN_QUESTIONS.md
-└── work/
-    ├── README.md
-    ├── items/
-    │   └── W-YYYYMMDD-short-title.md
-    └── executions/  # optional, one record per bounded Orca Run
-        └── E-YYYYMMDD-short-slug.md
-~~~
-
-The Skill inspects the existing project before creating files. Existing authoritative documentation, roadmaps, decision logs, issue trackers, and research records should be reused and linked—not copied merely to match this template.
-
-### Project memory
-
-| File | Responsibility |
-|---|---|
-| PROJECT.md | Stable purpose, goals, scope, constraints, terminology, and sources of truth. |
-| STATE.md | Current verified snapshot, active work, blockers, and next milestone. |
-| DECISIONS.md | Append-only record of material decisions and their rationale. |
-| OPEN_QUESTIONS.md | Unresolved questions that may affect direction or implementation. |
-
-### Work Items
-
-A Work Item under work/items/ is the durable record of one actionable outcome. It includes:
-
-- objective and context;
-- findings, decisions, and evidence;
-- completed work;
-- current workspace snapshot;
-- ordered next actions;
-- acceptance criteria;
-- constraints, risks, and handoff/validation history.
-
-New Work Items continue to use schema version 1.1 and an advisory revision number. v1.2 preserves that schema for backward compatibility. The revision helps agents notice stale edits but is not a distributed lock. Keep one active writer per Work Item and hand off ownership rather than editing the same file concurrently.
-
-The repository includes a standard-library Work Item validator at scripts/validate_work_item.py. Run it against an item before handing it off or marking it complete.
-
-The status lifecycle is:
-
-proposed → ready → in_progress → review → done
-
-A task can also become blocked or cancelled. done means the acceptance criteria have been verified or explicitly accepted; it does not merely mean an agent stopped working.
-
-## Design boundaries
-
-Project Continuity remains a file protocol and Skill, not an orchestration engine. Orca is an optional execution backend, not a dependency or source of project truth.
-
-The core does not:
-
-- require Orca or any specific agent provider;
-- own live agent-process, Run, Task, Dispatch, or Worker state;
-- synchronize provider-specific sessions or hidden reasoning;
-- automatically commit or push project changes.
-
-When Orca is used, the Coordinator follows the version-matched Orca Skill. Project Continuity stores only stable execution identifiers, evidence, outcomes, and reconciliation notes in `work/executions/`.
-
-A read-only analysis agent may prepare a handoff, but persistence requires permission to write the single Work Item. Skill instructions are not an operating-system security boundary; use the runtime's permission controls when write isolation matters.
-
-## Orca integration (v1.2)
-
-Read `.agents/skills/project-continuity/references/orca-integration.md` before coordinating Orca workers. One Work Item may span multiple Runs; each bounded Run has an optional Execution Record under `work/executions/`. Validate it with:
+## Validation
 
 ~~~bash
-python3 .agents/skills/project-continuity/scripts/validate_execution.py work/executions/E-YYYYMMDD-short-slug.md
+./scripts/validate.sh
+python3 scripts/validate_work_item.py work/items/W-YYYYMMDD-short-title.md
 ~~~
 
-Orca remains authoritative for live Run/Task/Dispatch/Worker state. `worker_done` does not mean the parent Work Item is accepted or done. The Coordinator reconciles evidence, moves the Work Item to review, and marks it done only after acceptance. Existing v1.1 Work Items and non-Orca workflows remain supported.
+For historical v1.2 Execution Records only:
+
+~~~bash
+python3 .agents/skills/project-continuity/scripts/validate_execution.py path/to/legacy-execution-record.md
+~~~
+
+## Design
+
+The core remains Markdown and Git based. No database, daemon, MCP server, provider-specific session parser, or automatic commit/push is required. See `docs/design.md` and the Skill references for detailed behavior.
 
 ## Contributing
 
-Keep the core protocol agent-neutral and project-type-neutral. Prefer small, additive changes. Do not add provider-specific behavior to the core Work Item format unless it is optional and preserves portability.
+Keep the core optional, minimal, agent-neutral, and project-type-neutral. Prefer existing sources of truth. Do not add orchestration, task-management, or provider-specific features to the core.
 
 ## License
 

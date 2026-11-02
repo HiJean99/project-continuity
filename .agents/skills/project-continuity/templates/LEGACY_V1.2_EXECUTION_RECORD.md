@@ -1,3 +1,4 @@
+<!-- Legacy v1.2 template. Do not create new records under Project Continuity v1.3. -->
 ---
 id: E-YYYYMMDD-short-slug
 work_item_id: W-YYYYMMDD-short-slug
@@ -12,17 +13,17 @@ schema_version: "1.2"
 revision: 1
 ---
 
-# <Execution Record title>
+# <Legacy Execution Record title>
 
 ## Objective
 
-Bounded phase outcome and parent Work Item link.
+Historical bounded phase outcome and parent Work Item link.
 
 ## Run
 
 - Backend: Orca Orchestration
 - Backend version:
-- Run ID: (record exact ID after successful creation)
+- Run ID:
 - Run objective:
 - Created:
 
@@ -57,7 +58,7 @@ Bounded phase outcome and parent Work Item link.
 
 ## Next action
 
-One immediate, executable action while this execution is unsettled.
+One immediate, executable action while this historical execution is unsettled.
 
 ## History
 

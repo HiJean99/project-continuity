@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate Project Continuity v1.2 Execution Records (standard library only)."""
+"""Legacy validator for Project Continuity v1.2 Execution Records. Do not create new v1.2 records."""
 from __future__ import annotations
 import argparse
 import re
@@ -81,7 +81,7 @@ def main() -> int:
         for error in errors:
             print(f"ERROR: {error}", file=sys.stderr)
         return 1
-    print(f"Valid Execution Record: {args.execution_record}")
+    print(f"Valid legacy v1.2 Execution Record: {args.execution_record}")
     return 0
 
 

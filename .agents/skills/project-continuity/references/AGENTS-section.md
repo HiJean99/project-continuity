@@ -1,10 +1,9 @@
-## Project Continuity
+## Project Continuity (optional)
 
-For work that spans conversations, sessions, or agents:
+Use the project-continuity Skill only when durable context must survive a meaningful session, agent, person, or tool boundary and existing project records do not already cover it.
 
-- Use the project-continuity Skill to initialize/adapt project context, hand off unfinished work, resume a Work Item, or consolidate durable progress.
-- Read PROJECT.md and STATE.md when relevant; consult DECISIONS.md and OPEN_QUESTIONS.md as needed.
-- Active and historical Work Items live in work/items/. A Work Item is the durable task and handoff record.
-- Verify the actual files, Git state, and validation results before resuming. Do not rely on chat history as the only record.
-- An analysis-only agent may create or update one Work Item under work/items/ only when explicitly preparing a handoff and only after the file write is approved. It must not edit source code or other project memory.
-- Record conclusions, evidence, assumptions, decisions, completed work, and next actions; never store hidden reasoning or secrets.
+- Prefer this repository's README, AGENTS.md, architecture docs, ADRs, issue tracker, experiment records, and native orchestration state as the sources of truth.
+- Do not create Project Continuity files by default; add only the missing record.
+- Do not duplicate ordinary tickets or Orca Tasks as Work Items. Orca owns live Runs, Tasks, Workers, messages, Worktrees, and execution state.
+- Work Items are optional durable handoff notes, not a scheduler or general backlog.
+- Record durable conclusions and decisions in their existing authoritative locations. Never store hidden reasoning, full transcripts, or secrets.

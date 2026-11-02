@@ -18,11 +18,11 @@ revision: 1
 
 ## Objective
 
-The observable outcome this work must produce.
+The durable outcome that must survive the current context boundary.
 
 ## Context
 
-Why this work exists and the minimum background needed to continue.
+Why the next context needs this handoff and what existing records it cannot rely on.
 
 ## Findings and decisions
 
@@ -56,10 +56,6 @@ Why this work exists and the minimum background needed to continue.
 
 One immediate, executable action for the next owner.
 
-## Execution records (optional, v1.2)
-
-- `work/executions/E-YYYYMMDD-short-slug.md` — bounded execution phase / Orca Run.
-
 ## Remaining steps (optional)
 
 1. [ ] Later step, if useful.
@@ -67,7 +63,7 @@ One immediate, executable action for the next owner.
 
 ## Acceptance criteria
 
-- [ ] Observable condition that proves completion.
+- [ ] Observable condition that proves the handoff outcome is complete.
 
 ## Constraints, risks, and assumptions
 

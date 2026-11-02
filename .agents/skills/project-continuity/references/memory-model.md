@@ -2,71 +2,51 @@
 
 ## Purpose
 
-Project memory stores durable knowledge that should survive conversation boundaries. It is not a transcript archive and should not repeat details already maintained in source code, issue trackers, experiment trackers, or domain-specific documentation.
+Project memory is optional. It preserves durable context that would otherwise be lost across meaningful context boundaries. It is not a transcript archive, project-management database, task tracker, or mirror of an orchestrator.
 
-## Default records
+## Source-of-truth priority
+
+Prefer existing authoritative sources in this order:
+
+1. Source code, configuration, tests, and reproducible outputs for implementation facts.
+2. README.md and AGENTS.md for project purpose, setup, conventions, and agent instructions.
+3. Existing architecture docs, ADRs, design docs, experiment logs, lab notebooks, and domain-specific records.
+4. Existing issue trackers or orchestration systems for active tasks and execution state.
+5. Project Continuity files only for durable context not already represented above.
+
+Do not create duplicate sources of truth.
+
+## Optional records
+
+Create only what the project actually needs.
 
 ### PROJECT.md — stable context
 
-Keep relatively stable:
+Use only if the project purpose, scope, constraints, terminology, and authoritative locations are not already documented. Do not duplicate the README or architecture document.
 
-- project purpose and intended outcomes;
-- scope and explicit non-goals;
-- users, stakeholders, or consumers;
-- constraints and operating assumptions;
-- important terminology;
-- links to authoritative code, data, documents, services, or repositories.
+### STATE.md — cross-session snapshot
 
-Do not turn it into a running status report.
-
-### STATE.md — current snapshot
-
-Keep it short and replace stale status rather than appending a diary:
-
-- last verified date;
-- current phase and objective;
-- active Work Items;
-- what is currently working or complete;
-- blockers and risks;
-- next milestone and immediate next actions.
-
-Use links to detailed records. If a fact has not been checked recently, label it as unverified or give its verification date.
+Use only when a concise snapshot is useful across sessions and no existing status/roadmap/research source serves the same role. Keep it short: verified phase, durable milestones, blockers, and next milestone. Never mirror live Orca or issue-tracker state.
 
 ### DECISIONS.md — decision history
 
-Append material decisions. Each record should include:
-
-- stable ID and date;
-- status: proposed, accepted, rejected, or superseded;
-- context/problem;
-- decision;
-- concise rationale;
-- consequences/trade-offs;
-- evidence or references;
-- prior decision superseded, if any.
-
-Do not record every idea as a decision. Do not rewrite history when a decision changes; append a superseding record.
+Use only if the project lacks an ADR or other decision record. Append material accepted/rejected/superseding decisions with context, rationale, consequences, and evidence. Do not create a second decision log.
 
 ### OPEN_QUESTIONS.md — unresolved questions
 
-Track questions whose answers may change project direction or implementation:
+Use only if questions need a durable home and are not already issues, research questions, or entries in an authoritative tracker. A question is not automatically a task.
 
-- stable ID;
-- question;
-- why it matters;
-- evidence or decision needed to resolve it;
-- current status;
-- related Work Item, if one exists.
+## Work Items are optional handoff artifacts
 
-A question is not automatically a task. Create a Work Item only when there is a concrete, actionable piece of work.
+A Work Item preserves one unfinished outcome only when a receiving context cannot rely on existing project records, issue trackers, or orchestrator Tasks. It is not a general backlog item or scheduler. `depends_on` is informational. Do not duplicate Orca Tasks or issue-tracker tickets.
 
-## Work Items are separate from project memory
+A Work Item may span sessions or tools, but should not mirror the live execution state of Orca. Keep project memory concise and link to the Work Item only when useful.
 
-Project memory answers: "What is this project, where does it stand, and what decisions matter?"
+## Orca and other orchestrators
 
-A Work Item answers: "What specific outcome is unfinished, what is known, what has been done, and what must happen next?"
+Orchestrators own live execution state: Runs, Tasks, dependencies, Dispatches, Workers, messages, workspaces, and liveness. Project Continuity does not create per-Run Execution Records in v1.3. Existing v1.2 Execution Records remain historical artifacts and can still be validated by the legacy validator.
 
-Keep the project snapshot concise and link to active Work Items. Do not duplicate their full details in STATE.md.
+Record only durable conclusions, accepted decisions, and artifacts that remain useful after the orchestrator Run has ended. Use the orchestrator directly for current task/Worker status.
 
 ## Evidence discipline
 

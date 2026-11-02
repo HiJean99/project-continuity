@@ -1,309 +1,145 @@
 # Project Continuity
 
-**跨 Agent、跨会话、跨项目的工作连续性工具。**
+**版本：** 1.3.0 | **语言：** [English](README.md) | 简体中文
 
-Project Continuity 是一套轻量的项目记忆与任务交接协议。它让一项尚未完成的工作能够从 AGY 交给 Codex、从 Codex 交回其他 Agent，或在几天后由新的会话继续推进。
+Project Continuity 是一套**可选、轻量、与 Agent 无关的项目上下文保存协议**，用于在不同会话、Agent、人员、工具和机器之间保留真正需要长期延续的信息。
 
-它不试图同步模型的隐藏推理，也不把 Agent 运行时状态作为项目事实来源。v1.2 增加可选的 Orca Orchestration 适配：Project Continuity 管理长期项目与 Work Item，Orca 负责 Run、Task、Dispatch 和 Worker 的实时执行协调。
+它不是项目管理系统、Issue Tracker、任务调度器、Agent Runtime，也不是编排平台。不应该默认安装到每一个代码仓库。它只负责保存现有项目文档和工具没有妥善保存的长期上下文。
 
-**语言：** [English](README.md) | 简体中文
+## v1.3 的核心原则
 
-## 核心能力
+**不要重复建设 Git、项目文档、Issue Tracker 或编排器已经解决的能力。**
 
-- **项目记忆：** 使用 PROJECT.md、STATE.md、DECISIONS.md 和 OPEN_QUESTIONS.md 保存长期背景、当前状态、重要决策和未解决问题。
-- **持久化任务：** 需要跨会话或跨 Agent 延续的重要工作，保存为独立的 Markdown Work Item。
-- **交接即任务：** 同一份 Work Item 同时承担任务记录和交接包，不重复维护 TASK.md 与 HANDOFF.md。
-- **可靠恢复：** 接手的 Agent 先检查实际文件、Git 状态、依赖和验证结果，再从未完成的步骤继续。
-- **角色灵活：** 不预设某个 Agent 负责研究、另一个负责编码。任务由谁承担、下一步交给谁，都在 Work Item 中按实际情况记录。
-- **跨工具可移植：** 基于 Markdown、Git 和 Agent Skills，不依赖数据库、守护进程、MCP Server 或特定模型厂商。
-- **证据优先：** 保存可见结论、来源、假设、决策和结果，不保存模型隐藏推理。
-- **高保真交接：** 保留原始工作成果和明确来源，给接手 Agent 一个唯一、可执行的下一步。
-- **一致性检查：** 任务创建或关闭时，检查项目状态和关联问题是否过时。
-- **可选多 Agent 编排：** 通过独立 Execution Record 将 Work Item 与 Orca Run/Task/Dispatch 关联；不使用 Orca 的项目仍可按 v1.1 方式工作。
+对于普通软件仓库，`README.md`、`AGENTS.md`、架构文档、ADR、测试、Git，以及 Orca 这样的编排器通常已经足够。直接使用这些工具即可。只有当重要上下文需要跨越单次会话、Agent、Issue 或编排 Run 长期保存，而且现有系统没有合适的位置时，才需要 Project Continuity。
+
+## 什么时候使用
+
+适合使用：
+
+- 长期研究或工程项目持续多个会话、Agent 和工具；
+- 重要决策和证据需要跨模型厂商或 Runtime 保存；
+- 工作横跨多个仓库或系统，没有统一的信息来源；
+- 需要把未完成工作交给其他 Agent 或人员，而现有记录不足以支持接手。
+
+通常不需要使用：
+
+- 单次会话内可以完成的普通代码修改；
+- 已有完善 README、AGENTS.md、架构文档和 ADR 的软件仓库；
+- 已由 GitHub Issues、Jira、Linear 等管理的任务；
+- Orca 已经管理当前 Run、Tasks、依赖、Worker 消息和 Worktree；
+- 现有研究记录或实验记录已经保存了所需上下文。
+
+详细判断见 `.agents/skills/project-continuity/references/when-to-use.md`；v1.2 升级说明见 `docs/migration-v1.2-to-v1.3.md`。
+
+## 系统职责边界
+
+| 系统 | 负责内容 |
+|---|---|
+| 项目文档 | 项目目的、安装、架构、约定和领域知识 |
+| ADR / 决策记录 | 已接受的技术和研究决策 |
+| Issue Tracker | 待办、工单、负责人和流程状态 |
+| Orca 或其他编排器 | 实时 Run、Task、依赖、Dispatch、Worker、消息、Worktree 和执行状态 |
+| Git | 源码历史、分支、提交和合并 |
+| Project Continuity | 其他系统没有妥善保存的跨上下文长期信息 |
+
+Project Continuity 不负责配置 Orca、选择 Agent/模型、创建 Worker、调度 DAG、管理 Worktree、合并分支或监控执行。不要把 Orca Task 复制成 Work Item，也不要在 v1.3 中为每个 Run 创建 Execution Record。
 
 ## 六种操作
 
+只有存在真实的连续性需求时，才使用这些操作：
+
 | 操作 | 用途 |
 |---|---|
-| init | 为新项目初始化项目记忆和工作记录结构。 |
-| adapt | 检查已有项目，以最小改动补充连续性结构，避免重复已有权威文档。 |
-| handoff | 将当前讨论或未完成工作整理成可由其他 Agent 或后续会话接手的任务。 |
-| resume | 核对项目真实状态，继续已有任务。 |
-| update | 将有长期价值的进展整理到项目记忆。 |
-| status | 查看当前项目状态和未完成任务。 |
+| init | 检查现有资料后，建立最小必要的连续性记录。 |
+| adapt | 补充真正缺失的上下文；不需要修改也是有效结果。 |
+| handoff | 现有系统不足以支持接手时，保存跨上下文交接信息。 |
+| resume | 核对真实工作区并继续已有交接。 |
+| update | 将长期有价值的知识或决策更新到权威位置。 |
+| status | 汇总连续性记录，不冒充实时 Orca 或 Issue 状态。 |
 
-不必记住这些命令。直接用中文描述需求，Agent 也可以根据意图选择操作。
-
-### Codex CLI 示例
+可以直接用自然语言，也可以调用 Skill：
 
 ~~~text
-$project-continuity init
-$project-continuity adapt
-$project-continuity handoff
-$project-continuity resume W-20261030-short-title
-$project-continuity update
-$project-continuity status
+Codex: $project-continuity init
+Antigravity CLI: /project-continuity init
+
+Codex: $project-continuity handoff
+Antigravity CLI: /project-continuity handoff
+
+Codex: $project-continuity resume W-YYYYMMDD-short-title
+Antigravity CLI: /project-continuity resume W-YYYYMMDD-short-title
 ~~~
 
-### Antigravity CLI（AGY）示例
+Skill 必须先检查已有文档和工具。如果现有资料已经满足需求，应明确说明不需要 Project Continuity，并且不创建任何文件。
 
-~~~text
-/project-continuity init
-/project-continuity adapt
-/project-continuity handoff
-/project-continuity resume W-20261030-short-title
-/project-continuity update
-/project-continuity status
-~~~
+## 记录均为可选
 
-也可以直接说：
+以下四种项目记忆文件不是强制组合：
 
-- “先读取项目记忆，告诉我目前进展。”
-- “把这轮讨论整理成交接任务，交给 Codex。”
-- “这个任务还没完成，保存进度和下一步。”
-- “读取上次的 Work Item，核对状态后继续。”
-- “检查本次工作是否产生需要长期保存的决策。”
+| 文件 | 仅在以下情况创建 |
+|---|---|
+| `PROJECT.md` | 项目长期背景尚未被其他文档记录 |
+| `STATE.md` | 确实需要跨会话快照，且没有现有路线图/状态记录 |
+| `DECISIONS.md` | 项目没有 ADR 或其他决策记录 |
+| `OPEN_QUESTIONS.md` | 未解决问题需要长期保存，且没有 Issue/研究问题系统 |
 
-只有真正需要跨会话、跨 Agent 或跨人员延续的工作才需要创建 Work Item。简单问答和一次性小修改不必建任务。
+Work Item 是可选的**交接记录**，不是通用 Backlog、调度器，也不是 Orca Task 或 Issue 的替代品。只有当工作必须跨越重要上下文边界，且接手方无法依赖现有记录时才创建。Work Item 继续使用 schema version 1.1，以保持兼容性。
 
 ## 安装
 
 ### Codex CLI 和 Antigravity CLI
 
-先克隆仓库：
-
 ~~~bash
 git clone https://github.com/HiJean99/project-continuity.git
 cd project-continuity
-~~~
-
-检查并安装：
-
-~~~bash
 ./scripts/validate.sh
 ./scripts/install-global.sh
 ~~~
 
-安装脚本会将同一份 Skill 安装到两个 CLI 各自的全局目录：
+安装位置：
 
-- **Codex CLI：** $CODEX_HOME/skills/project-continuity/，默认是 ~/.codex/skills/project-continuity/。
-- **Antigravity CLI：** ~/.gemini/antigravity-cli/skills/project-continuity/。
+- Codex CLI：`$CODEX_HOME/skills/project-continuity/`，默认 `~/.codex/skills/project-continuity/`。
+- Antigravity CLI：`~/.gemini/antigravity-cli/skills/project-continuity/`。
 
-如果 CLI 没有立即发现 Skill，重新启动对应 CLI。
-
-检查全局安装副本是否与当前仓库一致：
+检查安装副本：
 
 ~~~bash
 ./scripts/install-global.sh check
 ~~~
 
-安装脚本不会覆盖没有由本项目安装标记的同名目录。
-
-### 更新
-
-在仓库目录中执行：
-
-~~~bash
-git pull
-./scripts/validate.sh
-./scripts/install-global.sh
-~~~
-
-更新后重新启动 CLI（如果当前会话尚未重新发现 Skill）。
+安装脚本不会覆盖非本项目管理的目录。若 CLI 未发现更新后的 Skill，请重新启动 CLI。
 
 ### 其他 Agent Runtime
 
-Skill 源码位于标准项目级目录：
+通用 Skill 源码位于 `.agents/skills/project-continuity/`。支持 Agent Skills 的 Runtime 可以将其安装或链接到对应的全局 Skill 目录。
 
-~~~text
-.agents/skills/project-continuity/
-~~~
+## 向后兼容
 
-支持 Agent Skills 格式的其他 Runtime 可以复用同一份 Skill。将该目录安装或链接到对应 Runtime 文档规定的全局 Skills 目录即可。
+- 现有 v1.1 Work Item 继续有效。
+- v1.2 的 Orca Execution Record 和校验器保留为**历史兼容功能**。v1.3 不再创建新的 Execution Record，也不把 Orca 视为 Project Continuity 的执行后端。
+- 不会自动迁移、删除或重命名用户已有项目文件。
 
-当前安装脚本只适配 Codex CLI 和 Antigravity CLI，不会猜测其他工具的安装路径。
-
-## 项目文件结构
-
-新项目可以采用以下结构：
-
-~~~text
-project/
-├── AGENTS.md
-├── PROJECT.md
-├── STATE.md
-├── DECISIONS.md
-├── OPEN_QUESTIONS.md
-└── work/
-    ├── README.md
-    └── items/
-        └── W-YYYYMMDD-short-title.md
-~~~
-
-Skill 会先检查项目现有文档。若已有 README、架构说明、路线图、决策记录、Issue Tracker 或研究记录承担相同职责，就优先复用并建立链接，不会为了符合模板而复制一份。
-
-### 项目记忆
-
-| 文件 | 职责 |
-|---|---|
-| PROJECT.md | 项目长期背景、目标、范围、约束、术语和权威资料入口。 |
-| STATE.md | 当前已核实的状态、正在进行的工作、阻塞和下一里程碑。 |
-| DECISIONS.md | 重要决策及理由，采用追加记录，不覆盖历史决策。 |
-| OPEN_QUESTIONS.md | 可能影响项目方向或实现的未解决问题。 |
-
-这些文件不是聊天记录。应保持简洁，详细研究、实验、代码和领域资料仍保存在项目原有的权威位置。
-
-### Work Item：任务与交接的共同载体
-
-每个需要持续推进的工作，使用 work/items/ 下的一份 Markdown 文件。
-
-Work Item 应包含：
-
-1. 目标和背景。
-2. 已有发现、结论和决策。
-3. 证据、来源和相关文件。
-4. 已完成的工作。
-5. 当前工作区快照（适用时包括 Git 分支、Commit 和未提交文件）。
-6. 可直接执行的下一步。
-7. 可验证的验收标准。
-8. 约束、风险、假设和交接记录。
-
-Work Item 继续使用 schema version 1.1，并包含一个提示性 revision 版本号；v1.2 保持该格式以兼容旧项目，用于发现可能的旧内容覆盖。它不是分布式锁；同一份 Work Item 应保持单一写入者，需要换 Agent 时先交接所有权，不要并发编辑。
-
-仓库提供不依赖第三方库的 Work Item 校验器：scripts/validate_work_item.py。交接或标记完成前，可以运行：
+## 验证
 
 ~~~bash
+./scripts/validate.sh
 python3 scripts/validate_work_item.py work/items/W-YYYYMMDD-short-title.md
 ~~~
 
-Work Item 的状态：
+仅对历史 v1.2 Execution Record 使用：
 
-| 状态 | 含义 |
-|---|---|
-| proposed | 已提出，但尚未批准执行。 |
-| ready | 已批准，可以接手。 |
-| in_progress | 正在执行。 |
-| blocked | 等待依赖、决策或外部输入。 |
-| review | 工作已完成，等待验收。 |
-| done | 验收标准已经核实或由用户明确接受。 |
-| cancelled | 不再需要。 |
-
-典型流程：
-
-~~~text
-proposed -> ready -> in_progress -> review -> done
-                         |
-                         +-> blocked -> ready
-                         |
-                         +-> ready（交给另一个 Agent）
+~~~bash
+python3 .agents/skills/project-continuity/scripts/validate_execution.py path/to/legacy-execution-record.md
 ~~~
 
-done 不代表 Agent 停止工作，而是代表验收条件已经得到验证或明确接受。
+## 设计
 
-## Orca Orchestration 集成（v1.2）
-
-在需要跨 Agent、独立工作空间或有意义的并行执行时，才使用 Orca；简单任务继续使用单 Agent。一个 Work Item 可以跨越多个 Run；每个有界 Run 在 `work/executions/` 下有一份可选 Execution Record。格式见 `.agents/skills/project-continuity/references/execution-record-format.md`，流程见 `.agents/skills/project-continuity/references/orca-integration.md`。
-
-职责边界：Project Continuity 是项目目标、Work Item 生命周期、验收和长期记忆的权威；Orca 是 Run、Task、Dispatch、Worker 实时状态的权威。Coordinator 是连续性文件的唯一写入者，Worker 不得并发修改 Work Item、Execution Record、STATE.md 或 DECISIONS.md。`worker_done` 只表示 Task 汇报结算，不代表 Work Item 完成。Coordinator 必须核验结果，将 Work Item 转入 review；只有验收标准核实或用户明确接受后才能标记 done。
-
-按当前安装的 Orca orchestration Skill 执行 CLI、唤醒/消息和恢复协议，不要自行猜测命令或轮询 Worker。
-
-## 推荐的日常使用方式
-
-### 1. 开始工作
-
-让 Agent 先读取项目记忆和未完成任务：
-
-~~~text
-先读取项目记忆，检查当前状态和未完成任务，再开始处理我的需求。
-~~~
-
-### 2. 从 AGY 交给 Codex
-
-在 AGY 中：
-
-~~~text
-/project-continuity handoff
-~~~
-
-或直接说：
-
-~~~text
-把刚才的分析整理成 Codex 可以直接执行的 Work Item。
-保留重要结论、证据、已完成工作、未解决问题、
-下一步操作和验收标准。只创建交接任务，不修改代码。
-~~~
-
-AGY 创建并读回 Work Item 后，在 Codex 中：
-
-~~~text
-$project-continuity resume W-YYYYMMDD-short-title
-~~~
-
-### 3. 从 Codex 交回 AGY
-
-Codex 遇到需要独立分析的问题时，也可以整理当前实现、已有证据和待回答问题，交给 AGY：
-
-~~~text
-$project-continuity handoff
-~~~
-
-AGY 接手：
-
-~~~text
-/project-continuity resume W-YYYYMMDD-short-title
-~~~
-
-谁思考、谁执行、谁审查，由具体任务决定，不固定 Agent 角色。
-
-### 4. 暂停并在以后继续
-
-工作暂时不做时：
-
-~~~text
-保存当前任务进度、已经完成的内容、阻塞原因和下一步，
-确保另一个会话可以直接接着做。
-~~~
-
-以后通过 resume 恢复，不需要依赖原来的聊天历史。
-
-### 5. 重要工作完成后更新记忆
-
-~~~text
-/project-continuity update
-~~~
-
-或在 Codex 中：
-
-~~~text
-$project-continuity update
-~~~
-
-只整理有长期价值的进展、决策和状态变化，不要把每次对话都写进项目记忆。
-
-## 权限与安全边界
-
-- Skill 不会自动启动另一个 Agent，也不会自动替用户授权。
-- 只读分析 Agent 可以准备交接内容；要持久化时，必须获得对目标 Work Item 的文件写入权限。
-- 在严格只读模式下，Agent 应输出完整交接内容，不能声称已经保存。
-- Skill 指令不是操作系统级安全隔离。需要强制限制写入范围时，应使用 Agent Runtime 自身的权限或沙箱机制。
-- 不要把密码、Token、私钥、.env 内容或其他敏感信息写入项目记忆和 Work Item。
-- 接手者必须核对真实工作区，不能盲目信任过期的状态快照。
-
-## 设计边界
-
-Project Continuity 是一套文件协议和 Skill，不是完整的 Agent 编排平台。它不负责：
-
-- 启动、监控或切换 Agent 进程；
-- 同步不同 Provider 的内部会话和隐藏推理；
-- 在交接后自动启动另一个 Agent；
-- 通用 DAG 调度、后台任务队列或可视化任务看板；
-- 自动提交或推送项目代码。
+核心仍然基于 Markdown 和 Git。不要求数据库、守护进程、MCP Server、厂商专属会话解析器，也不会自动 Commit/Push。详细设计见 `docs/design.md` 和 Skill references。
 
 ## 贡献
 
-保持核心协议跨 Agent、跨项目类型。优先采用小幅、向后兼容的改动。特定 Provider 的能力应保持可选，不要让核心 Work Item 格式依赖某一家厂商。
+保持核心可选、轻量、Agent 中立和项目类型中立。优先使用现有权威资料，不要把编排、任务管理或厂商专属功能加入核心。
 
 ## 许可证
 
-MIT License，详见 LICENSE。
+MIT，见 LICENSE。

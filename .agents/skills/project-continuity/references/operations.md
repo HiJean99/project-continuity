@@ -1,60 +1,54 @@
 # Operation Procedures
 
-## init — new project
+## init — establish continuity only when needed
 
-1. Resolve the target path and project name. If the path does not exist, create it only when the user explicitly asked to create a project there.
-2. Inspect the directory and Git state. Do not assume it is empty.
-3. Create only missing continuity files using the templates.
-4. Populate facts available from the user's request and existing files. Mark unknown fields as unknown or ask one focused question if the missing information blocks useful initialization.
-5. Create work/README.md and work/items/. Create work/executions/ only when Orca-backed execution is used; it is optional.
-6. Add a short Project Continuity section to AGENTS.md, preserving any existing instructions.
-7. Summarize created files and unresolved information.
+1. Inspect the target path, Git state, README, AGENTS.md, architecture docs, ADRs, issue trackers, experiment records, and native orchestration tools.
+2. Apply the decision guide in `when-to-use.md`.
+3. If existing sources already preserve the needed context, make no changes and explain why Project Continuity is unnecessary.
+4. If continuity is needed, identify the single missing information category and create only its corresponding record. Do not create the four memory files or `work/` bundle automatically.
+5. Preserve all existing files and conventions. Mark unknown facts rather than inventing them.
+6. Verify links and Git diff. Do not commit unless asked.
 
-## adapt — existing project
+## adapt — improve an existing continuity setup minimally
 
-1. Inspect the project tree, README, existing instruction files, documentation, task trackers, and Git status.
-2. Map existing authoritative documents to the memory model. Do not create a second architecture document, roadmap, ADR log, issue list, or changelog if an existing source already serves that purpose.
-3. Present a short adaptation plan when changes are non-trivial. For a clear user-authorized adaptation, make additive, non-destructive changes.
-4. Create missing continuity files or add links to existing equivalents. Preserve user content and all unrelated dirty changes.
-5. Add a small instruction pointer to AGENTS.md only if absent.
-6. Verify links, file paths, and Git diff. Do not commit unless asked.
+1. Inspect project docs, instructions, trackers, orchestrator state (if relevant), and Git status.
+2. Identify duplicated or missing durable context. Existing authoritative docs take precedence over Project Continuity templates.
+3. If no meaningful gap exists, report a no-op; do not manufacture files or structure.
+4. If a gap exists, present a short plan for non-trivial changes and make only additive, non-destructive changes authorized by the user.
+5. Do not duplicate Orca Runs, Tasks, Dispatches, Worker messages, or Worktree state.
+6. Verify links, paths, and Git diff. Do not commit unless asked.
 
-## handoff — capture unfinished work
+## handoff — preserve cross-context unfinished work
 
-1. Identify the work outcome. If an open Work Item already represents it, update that file instead of duplicating it.
-2. Extract only the useful, user-visible context from the current conversation: goal, constraints, decisions, evidence, completed work, and remaining work.
-3. Verify repository facts and capture the workspace snapshot where relevant.
-4. Set status to proposed if authorization is unclear; set ready only when the user has approved the work.
-5. Set next_agent or assigned_to only when the intended owner is known. Never assume the next agent based solely on vendor.
-6. Update STATE.md with a link to the Work Item only if the current agent is authorized to update project memory. A handoff-only analysis agent writes only the Work Item; the receiving agent updates STATE.md when it adopts the work.
-7. If the current agent is in a read-only/plan mode, do not claim persistence: request approval for the single Work Item write or return the complete Markdown artifact for the user to save. Do not broaden permission to source code or other project files.
-8. Run the handoff quality checklist in references/work-item-format.md, including the single immediate next action and provenance check.
-9. Tell the user the Work Item ID and where it was saved. Do not claim that another agent was launched.
+1. Check whether the work is already represented by an issue, Orca Task, or authoritative project record. If so, use that system; do not create a duplicate Work Item.
+2. Create/update a Work Item only if the receiving agent/person/session cannot reliably continue from existing records.
+3. Capture the objective, useful visible context, accepted decisions, evidence, completed work, actual workspace snapshot, constraints, unresolved questions, acceptance criteria, and one immediate Next action.
+4. Preserve exact work products at their source paths; link them rather than copying large artifacts.
+5. Set `proposed` if authorization is unclear; use `ready` only when execution is approved.
+6. Keep one active writer. Re-read the Work Item immediately before updating it.
+7. Do not claim an Agent was launched. Handoff records context; the receiving tool/orchestrator controls execution.
 
-## resume — continue unfinished work
+## resume — continue a durable handoff
 
-1. If the user gives an ID, use it. Otherwise list open Work Items and ask one question only if multiple candidates are plausible.
-2. Read the selected Work Item and relevant project memory.
-3. Verify the actual workspace and dependencies. Compare actual state with the saved snapshot.
-4. If the snapshot is stale, reconcile it explicitly; do not overwrite current files to force them to match the old note.
-5. Continue the single immediate Next action. If it is missing or ambiguous, repair the Work Item before execution.
-6. Preserve exact work-in-progress at its source location; do not regenerate or paraphrase an existing draft/code artifact unnecessarily.
-6. Record material progress, validation, blockers, and any ownership change in the same Work Item.
-8. Update STATE.md when the project-level snapshot changes, and reconcile linked questions/indexes so they do not contradict the Work Item.
-9. Set review or done only according to the status lifecycle and acceptance criteria.
+1. Use the supplied Work Item ID. If none is supplied, identify open items and ask only if multiple candidates are plausible.
+2. Read the Work Item and only relevant project records.
+3. Verify the actual workspace, Git state, artifacts, dependencies, and tests. Actual state outranks stale snapshots.
+4. Continue the immediate Next action. Do not duplicate work already completed.
+5. Record material progress only if it remains useful across a context boundary. If the work is now tracked in an orchestrator or issue tracker, use that system for live execution state.
+6. Mark review/done according to the Work Item's durable handoff outcome, not a Worker status.
 
 ## update — consolidate durable knowledge
 
-1. Review changes and results since the last recorded state.
-2. Update STATE.md as a current snapshot, not a transcript.
-3. Append accepted/rejected/superseding decisions to DECISIONS.md.
-4. Add or resolve OPEN_QUESTIONS.md entries only when the evidence supports the change.
-5. Link detailed records rather than copying large logs or reports.
-6. Leave uncertain findings labelled as hypotheses or inferences.
-7. Perform a backward consistency sweep: ensure linked STATE.md entries, OPEN_QUESTIONS.md items, and decision indexes do not contradict newer verified outcomes. Update only the authoritative home of each fact and link elsewhere.
+1. Identify what changed that will remain useful after the current session or execution ends.
+2. Update the existing authoritative document (README, architecture doc, ADR, experiment record, etc.) first.
+3. Use Project Continuity files only for information with no suitable existing home.
+4. Keep STATE.md a concise verified snapshot, not a diary or orchestrator dashboard.
+5. Append material decisions; do not rewrite history.
+6. Do not copy transient Orca Run/Task/Dispatch/Worker status into continuity records.
 
-## status — show continuity state
+## status — summarize continuity records
 
-1. Read STATE.md and list Work Items not in done or cancelled.
-2. Group by status and identify the next actionable item.
-3. Do not modify files unless the user asks for an update.
+1. Read only the existing continuity records relevant to the request.
+2. Do not infer live project/task/Worker status from stale Markdown.
+3. If the user asks for live Orca or issue status, use that system directly rather than Project Continuity.
+4. Do not modify files unless asked.
