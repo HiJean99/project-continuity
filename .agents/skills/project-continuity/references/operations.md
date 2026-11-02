@@ -6,7 +6,7 @@
 2. Inspect the directory and Git state. Do not assume it is empty.
 3. Create only missing continuity files using the templates.
 4. Populate facts available from the user's request and existing files. Mark unknown fields as unknown or ask one focused question if the missing information blocks useful initialization.
-5. Create work/README.md and work/items/.
+5. Create work/README.md and work/items/. Create work/executions/ only when Orca-backed execution is used; it is optional.
 6. Add a short Project Continuity section to AGENTS.md, preserving any existing instructions.
 7. Summarize created files and unresolved information.
 

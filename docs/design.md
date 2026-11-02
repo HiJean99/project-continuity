@@ -88,3 +88,12 @@ Deliberately not adopted:
 - Automatic hooks or agent launching.
 
 Those mechanisms solve multi-process and multi-agent concurrency at the cost of substantially more implementation and maintenance. For personal use, sequential ownership plus Git history and explicit revision checks are the simpler trade-off. If real concurrent edits become common, revisit a transactional state store rather than pretending a Markdown revision field is a lock.
+
+
+## v1.2: optional Orca execution adapter
+
+Version 1.2 keeps the v1.1 Work Item schema and adds an optional Orca adapter. Project Continuity remains agent- and backend-neutral: the Work Item is the durable outcome; an Execution Record under `work/executions/` captures one bounded backend execution phase. One Work Item may link to multiple Execution Records / Orca Runs. Each Run contains Tasks; each Task may have multiple Dispatch attempts.
+
+Authority is split: Project Continuity owns project intent, acceptance, Work Item lifecycle, and canonical memory. Orca owns live Run, Task, Dispatch, Worker, and liveness state. The Coordinator is the single writer of canonical continuity files. Worker completion is not Work Item acceptance. The Coordinator reconciles evidence and moves the Work Item to review; done requires verified or user-accepted acceptance criteria.
+
+The integration is opt-in and additive. Non-Orca projects continue unchanged. No daemon, database, polling loop, provider-specific session parser, or automatic commit/push is introduced. See the Skill references `orca-integration.md` and `execution-record-format.md`.

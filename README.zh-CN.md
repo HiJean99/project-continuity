@@ -4,7 +4,7 @@
 
 Project Continuity 是一套轻量的项目记忆与任务交接协议。它让一项尚未完成的工作能够从 AGY 交给 Codex、从 Codex 交回其他 Agent，或在几天后由新的会话继续推进。
 
-它不试图同步模型的隐藏推理，也不负责启动或编排 Agent 进程。它只持久化真正有助于继续工作的内容：目标、背景、结论、证据、已完成事项、当前状态、下一步和验收标准。
+它不试图同步模型的隐藏推理，也不把 Agent 运行时状态作为项目事实来源。v1.2 增加可选的 Orca Orchestration 适配：Project Continuity 管理长期项目与 Work Item，Orca 负责 Run、Task、Dispatch 和 Worker 的实时执行协调。
 
 **语言：** [English](README.md) | 简体中文
 
@@ -19,6 +19,7 @@ Project Continuity 是一套轻量的项目记忆与任务交接协议。它让�
 - **证据优先：** 保存可见结论、来源、假设、决策和结果，不保存模型隐藏推理。
 - **高保真交接：** 保留原始工作成果和明确来源，给接手 Agent 一个唯一、可执行的下一步。
 - **一致性检查：** 任务创建或关闭时，检查项目状态和关联问题是否过时。
+- **可选多 Agent 编排：** 通过独立 Execution Record 将 Work Item 与 Orca Run/Task/Dispatch 关联；不使用 Orca 的项目仍可按 v1.1 方式工作。
 
 ## 六种操作
 
@@ -167,7 +168,7 @@ Work Item 应包含：
 7. 可验证的验收标准。
 8. 约束、风险、假设和交接记录。
 
-新版 Work Item 使用 schema version 1.1，并包含一个提示性 revision 版本号，用于发现可能的旧内容覆盖。它不是分布式锁；同一份 Work Item 应保持单一写入者，需要换 Agent 时先交接所有权，不要并发编辑。
+Work Item 继续使用 schema version 1.1，并包含一个提示性 revision 版本号；v1.2 保持该格式以兼容旧项目，用于发现可能的旧内容覆盖。它不是分布式锁；同一份 Work Item 应保持单一写入者，需要换 Agent 时先交接所有权，不要并发编辑。
 
 仓库提供不依赖第三方库的 Work Item 校验器：scripts/validate_work_item.py。交接或标记完成前，可以运行：
 
@@ -198,6 +199,14 @@ proposed -> ready -> in_progress -> review -> done
 ~~~
 
 done 不代表 Agent 停止工作，而是代表验收条件已经得到验证或明确接受。
+
+## Orca Orchestration 集成（v1.2）
+
+在需要跨 Agent、独立工作空间或有意义的并行执行时，才使用 Orca；简单任务继续使用单 Agent。一个 Work Item 可以跨越多个 Run；每个有界 Run 在 `work/executions/` 下有一份可选 Execution Record。格式见 `.agents/skills/project-continuity/references/execution-record-format.md`，流程见 `.agents/skills/project-continuity/references/orca-integration.md`。
+
+职责边界：Project Continuity 是项目目标、Work Item 生命周期、验收和长期记忆的权威；Orca 是 Run、Task、Dispatch、Worker 实时状态的权威。Coordinator 是连续性文件的唯一写入者，Worker 不得并发修改 Work Item、Execution Record、STATE.md 或 DECISIONS.md。`worker_done` 只表示 Task 汇报结算，不代表 Work Item 完成。Coordinator 必须核验结果，将 Work Item 转入 review；只有验收标准核实或用户明确接受后才能标记 done。
+
+按当前安装的 Orca orchestration Skill 执行 CLI、唤醒/消息和恢复协议，不要自行猜测命令或轮询 Worker。
 
 ## 推荐的日常使用方式
 

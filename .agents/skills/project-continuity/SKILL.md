@@ -1,6 +1,6 @@
 ---
 name: project-continuity
-description: Initialize or adapt durable context for any project, and hand off or resume unfinished work across agents and sessions. Use for project setup, cross-agent handoff, task continuation, or meaningful project-state updates; not for routine one-off notes.
+description: Initialize or adapt durable context for any project, and hand off or resume unfinished work across agents and sessions. Optionally coordinate multi-agent execution through Orca Orchestration while keeping project memory and Work Items portable. Use for project setup, cross-agent handoff, task continuation, Orca-backed execution, or meaningful project-state updates; not for routine one-off notes.
 ---
 
 # Project Continuity
@@ -53,7 +53,7 @@ Do not force every file into every project if an existing equivalent is already 
 
 A Work Item is the durable record of one meaningful unit of work. It is both the task record and the handoff package; do not create a second transcript-summary file for the same work.
 
-For handoff or resume, read [references/operations.md](references/operations.md) and [references/work-item-format.md](references/work-item-format.md). New Work Items use schema version 1.1 and must pass scripts/validate_work_item.py from the repository root, or the validator bundled in the installed Skill directory.
+For handoff or resume, read [references/operations.md](references/operations.md) and [references/work-item-format.md](references/work-item-format.md). New Work Items use schema version 1.1 and must pass scripts/validate_work_item.py from the repository root, or the validator bundled in the installed Skill directory. Existing v1.1 Work Items remain valid in v1.2.
 
 Store Work Items in work/items/. Use one file per independently actionable outcome. Reuse and update an existing matching open item rather than creating duplicates.
 
@@ -84,6 +84,16 @@ When resuming a Work Item:
 5. Continue from the first incomplete next action. Do not repeat completed work without a reason.
 6. Update the Work Item after meaningful progress, handoff, blocking, or validation. Before writing, re-read the current file and preserve changes made since it was loaded. Keep one active writer per Work Item; hand off ownership instead of concurrent editing. Update STATE.md when the project-level snapshot changes.
 7. Move to review when implementation is complete but acceptance is pending. Mark done only after the stated acceptance criteria are verified or explicitly accepted by the user.
+
+## Optional Orca Orchestration
+
+Project Continuity v1.2 can use Orca as an optional execution backend. Read [references/orca-integration.md](references/orca-integration.md) before creating or managing Orca workers. The integration is additive: projects without Orca retain the v1.1 workflow and Work Item schema.
+
+Use Orca only when a different agent, independent parallel work, task dependencies, or a dedicated Orca workspace materially helps. Do not create a Run just to record work. The Work Item remains the durable project goal and may span multiple Runs; each bounded Run gets one optional `work/executions/E-YYYYMMDD-short-slug.md` Execution Record, linked from the parent Work Item under its optional Execution records section. Use [references/execution-record-format.md](references/execution-record-format.md) and validate it with `scripts/validate_execution.py`.
+
+Project Continuity owns project intent, Work Item lifecycle, acceptance, and canonical memory. Orca owns live Run/Task/Dispatch/Worker state. The Coordinator is the single writer for canonical continuity records. Workers must not concurrently edit the Work Item, Execution Record, STATE.md, or DECISIONS.md. Record exact Orca identifiers only after successful receipts; never invent them. Orca `worker_done` does not complete the parent Work Item. Reconcile evidence, move the Work Item to `review`, and mark it `done` only after acceptance criteria are verified or explicitly accepted by the user.
+
+Follow the installed, version-matched Orca orchestration Skill for exact CLI commands, wake-up/mail handling, placement, and recovery. Do not poll workers or steer them through terminals. If Orca is unavailable, preserve continuity records and report the blocker; do not simulate execution.
 
 ## Updating memory
 

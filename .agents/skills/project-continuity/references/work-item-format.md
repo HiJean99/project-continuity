@@ -80,6 +80,10 @@ This is a snapshot, not an authority over the current filesystem.
 
 State exactly one immediate action that the next owner can execute now. Include the target file, command, question, or expected output where possible. Do not give the receiving agent a menu of alternatives.
 
+### Execution records (optional, v1.2)
+
+When Orca is used, link each bounded Run to its Execution Record under `work/executions/`. A Work Item may reference multiple records over its lifetime. Do not copy live Orca state or the full Task/Dispatch log into the Work Item; see `execution-record-format.md`.
+
 ### Remaining steps (optional)
 
 A short ordered checklist may describe later work, but it must not compete with the single immediate Next action.

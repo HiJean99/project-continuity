@@ -2,7 +2,7 @@
 
 **Languages:** English | [简体中文](README.zh-CN.md)
 
-A lightweight, agent-neutral protocol for preserving project context and continuing unfinished work across agents, sessions, and machines.
+A lightweight, agent-neutral protocol for preserving project context and continuing unfinished work across agents, sessions, and machines. Version 1.2 adds an optional Orca Orchestration adapter without making Orca a core dependency.
 
 Project Continuity does not synchronize hidden model reasoning or manage agent processes. It records the information another person or agent needs to continue the work: goals, decisions, evidence, completed steps, current state, next actions, and acceptance criteria.
 
@@ -17,6 +17,7 @@ Project Continuity does not synchronize hidden model reasoning or manage agent p
 - **Evidence discipline:** preserve conclusions, sources, assumptions, decisions, and results—not hidden chain-of-thought.
 - **Handoff fidelity:** preserve exact in-progress artifacts at their source, require provenance, and give the next agent one immediate action.
 - **Consistency checks:** reconcile project status and linked questions when work is created or closed.
+- **Optional orchestration:** connect durable Work Items to Orca Runs, Tasks, Dispatches, and Workers through separate Execution Records; the core remains usable without Orca.
 
 ## Operations
 
@@ -98,8 +99,10 @@ project/
 ├── OPEN_QUESTIONS.md
 └── work/
     ├── README.md
-    └── items/
-        └── W-YYYYMMDD-short-title.md
+    ├── items/
+    │   └── W-YYYYMMDD-short-title.md
+    └── executions/  # optional, one record per bounded Orca Run
+        └── E-YYYYMMDD-short-slug.md
 ~~~
 
 The Skill inspects the existing project before creating files. Existing authoritative documentation, roadmaps, decision logs, issue trackers, and research records should be reused and linked—not copied merely to match this template.
@@ -125,7 +128,7 @@ A Work Item under work/items/ is the durable record of one actionable outcome. I
 - acceptance criteria;
 - constraints, risks, and handoff/validation history.
 
-New Work Items use schema version 1.1 and an advisory revision number. The revision helps agents notice stale edits but is not a distributed lock. Keep one active writer per Work Item and hand off ownership rather than editing the same file concurrently.
+New Work Items continue to use schema version 1.1 and an advisory revision number. v1.2 preserves that schema for backward compatibility. The revision helps agents notice stale edits but is not a distributed lock. Keep one active writer per Work Item and hand off ownership rather than editing the same file concurrently.
 
 The repository includes a standard-library Work Item validator at scripts/validate_work_item.py. Run it against an item before handing it off or marking it complete.
 
@@ -137,17 +140,28 @@ A task can also become blocked or cancelled. done means the acceptance criteria 
 
 ## Design boundaries
 
-Project Continuity is a file protocol and Skill, not a full orchestration platform.
+Project Continuity remains a file protocol and Skill, not an orchestration engine. Orca is an optional execution backend, not a dependency or source of project truth.
 
-It does not:
+The core does not:
 
-- launch, supervise, or switch agent processes;
+- require Orca or any specific agent provider;
+- own live agent-process, Run, Task, Dispatch, or Worker state;
 - synchronize provider-specific sessions or hidden reasoning;
-- automatically execute another agent after a handoff;
-- implement a general DAG scheduler or task dashboard;
 - automatically commit or push project changes.
 
+When Orca is used, the Coordinator follows the version-matched Orca Skill. Project Continuity stores only stable execution identifiers, evidence, outcomes, and reconciliation notes in `work/executions/`.
+
 A read-only analysis agent may prepare a handoff, but persistence requires permission to write the single Work Item. Skill instructions are not an operating-system security boundary; use the runtime's permission controls when write isolation matters.
+
+## Orca integration (v1.2)
+
+Read `.agents/skills/project-continuity/references/orca-integration.md` before coordinating Orca workers. One Work Item may span multiple Runs; each bounded Run has an optional Execution Record under `work/executions/`. Validate it with:
+
+~~~bash
+python3 .agents/skills/project-continuity/scripts/validate_execution.py work/executions/E-YYYYMMDD-short-slug.md
+~~~
+
+Orca remains authoritative for live Run/Task/Dispatch/Worker state. `worker_done` does not mean the parent Work Item is accepted or done. The Coordinator reconciles evidence, moves the Work Item to review, and marks it done only after acceptance. Existing v1.1 Work Items and non-Orca workflows remain supported.
 
 ## Contributing
 

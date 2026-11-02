@@ -56,6 +56,10 @@ Why this work exists and the minimum background needed to continue.
 
 One immediate, executable action for the next owner.
 
+## Execution records (optional, v1.2)
+
+- `work/executions/E-YYYYMMDD-short-slug.md` — bounded execution phase / Orca Run.
+
 ## Remaining steps (optional)
 
 1. [ ] Later step, if useful.
